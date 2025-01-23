@@ -59,7 +59,7 @@ int main() {
             getline(cin, nombreProducto);
 
             if (!esNombreValido(nombreProducto)) {
-                cout << "Error: El nombre no puede estar vacío ni contener números." << endl;
+                cout << "Error: El nombre no puede estar vacio ni contener numeros." << endl;
             }
         } while (!esNombreValido(nombreProducto)); // Repetir hasta que el nombre sea válido
 
