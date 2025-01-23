@@ -1,1 +1,97 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <iomanip> // Para formatear la salida
+#include <limits>  // Para controlar la entrada de datos
+
+using namespace std; // Usar el espacio de nombres estándar
+
+// Estructura para representar un producto
+struct Producto {
+    string nombre;
+    float precio;
+};
+
+// Función para validar que el nombre no esté vacío y no contenga números
+bool esNombreValido(const string& nombre) {
+    if (nombre.empty()) {
+        return false;
+    }
+    for (char c : nombre) {
+        if (isdigit(c)) { // Verifica si hay algún número en el nombre
+            return false;
+        }
+    }
+    return true;
+}
+
+// Función para validar el precio (número positivo y no letras)
+float ingresarPrecio() {
+    float precio;
+    while (true) {
+        cout << "Ingrese el precio del producto: ";
+        cin >> precio;
+
+        if (cin.fail() || precio < 0) { // Si la entrada falla (no es un número) o es negativa
+            cout << "Error: ingrese un valor numérico positivo." << endl;
+            cin.clear(); // Limpiar el estado de error de cin
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Descartar la entrada incorrecta
+        } else {
+            break; // Si el precio es válido, salir del bucle
+        }
+    }
+    return precio;
+}
+
+int main() {
+    vector<Producto> productos; // Vector para almacenar los productos
+    char opcion;
+    float valorTotal = 0.0; // Variable para acumular el valor total de los productos
+
+    do {
+        Producto p;
+        string nombreProducto;
+
+        // Validar la entrada del nombre del producto
+        do {
+            cout << "Ingrese el nombre del producto: ";
+            cin.ignore(); // Limpiar el buffer de entrada
+            getline(cin, nombreProducto);
+
+            if (!esNombreValido(nombreProducto)) {
+                cout << "Error: El nombre no puede estar vacío ni contener números." << endl;
+            }
+        } while (!esNombreValido(nombreProducto)); // Repetir hasta que el nombre sea válido
+
+        p.nombre = nombreProducto;
+
+        // Ingresar y validar el precio del producto
+        p.precio = ingresarPrecio();
+
+        // Agregar el producto a la lista
+        productos.push_back(p);
+
+        // Sumar el precio del producto al valor total
+        valorTotal += p.precio;
+
+        // Preguntar si desea agregar más productos
+        cout << "¿Desea ingresar otro producto? (s/n): ";
+        cin >> opcion;
+
+    } while (opcion == 's' || opcion == 'S');
+
+    // Mostrar la lista de productos
+    cout << "\nLista de productos ingresados:" << endl;
+    cout << setw(20) << left << "Nombre" << setw(10) << "Precio" << endl;
+    cout << "-------------------- -----------" << endl;
+
+    for (const auto& producto : productos) {
+        cout << setw(20) << left << producto.nombre << "$" << fixed << setprecision(2) << producto.precio << endl;
+    }
+
+    // Mostrar el valor final (suma total)
+    cout << "\nValor total de los productos: $" << fixed << setprecision(2) << valorTotal << endl;
+
+    return 0;
+}
 
