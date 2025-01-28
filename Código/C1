@@ -3,6 +3,7 @@
 #include <string>
 #include <iomanip> // Para formatear la salida
 #include <limits>  // Para controlar la entrada de datos
+#include <cctype>  // Para funciones relacionadas con caracteres
 
 using namespace std; // Usar el espacio de nombres estándar
 
@@ -12,28 +13,28 @@ struct Producto {
     float precio;
 };
 
-// Función para validar que el nombre no esté vacío y no contenga números
+// Función para validar que el nombre no esté vacío, no contenga números ni caracteres especiales
 bool esNombreValido(const string& nombre) {
     if (nombre.empty()) {
         return false;
     }
     for (char c : nombre) {
-        if (isdigit(c)) { // Verifica si hay algún número en el nombre
+        if (isdigit(c) || !isalnum(c) && !isspace(c)) { // Verifica si hay números o caracteres no alfanuméricos
             return false;
         }
     }
     return true;
 }
 
-// Función para validar el precio (número positivo y no letras)
+// Función para validar el precio (número mayor que 0)
 float ingresarPrecio() {
     float precio;
     while (true) {
         cout << "Ingrese el precio del producto: ";
         cin >> precio;
 
-        if (cin.fail() || precio < 0) { // Si la entrada falla (no es un número) o es negativa
-            cout << "Error: ingrese un valor numérico positivo." << endl;
+        if (cin.fail() || precio <= 0) { // Si la entrada falla (no es un número) o es menor o igual a 0
+            cout << "Error: ingrese un valor mayor que 0." << endl;
             cin.clear(); // Limpiar el estado de error de cin
             cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Descartar la entrada incorrecta
         } else {
@@ -43,44 +44,13 @@ float ingresarPrecio() {
     return precio;
 }
 
-int main() {
-    vector<Producto> productos; // Vector para almacenar los productos
-    char opcion;
-    float valorTotal = 0.0; // Variable para acumular el valor total de los productos
+// Función para mostrar la lista de productos
+void mostrarProductos(const vector<Producto>& productos) {
+    if (productos.empty()) {
+        cout << "No hay productos ingresados." << endl;
+        return;
+    }
 
-    do {
-        Producto p;
-        string nombreProducto;
-
-        // Validar la entrada del nombre del producto
-        do {
-            cout << "Ingrese el nombre del producto: ";
-            cin.ignore(); // Limpiar el buffer de entrada
-            getline(cin, nombreProducto);
-
-            if (!esNombreValido(nombreProducto)) {
-                cout << "Error: El nombre no puede estar vacio ni contener numeros." << endl;
-            }
-        } while (!esNombreValido(nombreProducto)); // Repetir hasta que el nombre sea válido
-
-        p.nombre = nombreProducto;
-
-        // Ingresar y validar el precio del producto
-        p.precio = ingresarPrecio();
-
-        // Agregar el producto a la lista
-        productos.push_back(p);
-
-        // Sumar el precio del producto al valor total
-        valorTotal += p.precio;
-
-        // Preguntar si desea agregar más productos
-        cout << "¿Desea ingresar otro producto? (s/n): ";
-        cin >> opcion;
-
-    } while (opcion == 's' || opcion == 'S');
-
-    // Mostrar la lista de productos
     cout << "\nLista de productos ingresados:" << endl;
     cout << setw(20) << left << "Nombre" << setw(10) << "Precio" << endl;
     cout << "-------------------- -----------" << endl;
@@ -88,9 +58,95 @@ int main() {
     for (const auto& producto : productos) {
         cout << setw(20) << left << producto.nombre << "$" << fixed << setprecision(2) << producto.precio << endl;
     }
+}
 
-    // Mostrar el valor final (suma total)
-    cout << "\nValor total de los productos: $" << fixed << setprecision(2) << valorTotal << endl;
+// Función para calcular el valor total de los productos
+float calcularTotal(const vector<Producto>& productos) {
+    float valorTotal = 0.0;
+    for (const auto& producto : productos) {
+        valorTotal += producto.precio;
+    }
+    return valorTotal;
+}
+
+int main() {
+    vector<Producto> productos; // Vector para almacenar los productos
+    int opcion;
+
+    do {
+        // Mostrar menú
+        cout << "\n--- Menu ---" << endl;
+        cout << "1. Ingresar productos" << endl;
+        cout << "2. Mostrar productos" << endl;
+        cout << "3. Calcular total" << endl;
+        cout << "4. Salir" << endl;
+        cout << "Seleccione una opcion: ";
+        cin >> opcion;
+
+        // Validar la entrada del menú
+        if (cin.fail()) {
+            cout << "Error: Ingrese un numero valido." << endl;
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            continue;
+        }
+
+        switch (opcion) {
+            case 1: {
+                char continuar;
+                do {
+                    Producto p;
+                    string nombreProducto;
+
+                    // Validar la entrada del nombre del producto
+                    cin.ignore(); // Limpiar el buffer de entrada
+                    do {
+                        cout << "\nIngrese el nombre del producto: ";
+                        getline(cin, nombreProducto);
+
+                        if (!esNombreValido(nombreProducto)) {
+                            cout << "Error: El nombre no puede estar vacío, ni contener números ni caracteres especiales." << endl;
+                        }
+                    } while (!esNombreValido(nombreProducto)); // Repetir hasta que el nombre sea válido
+
+                    p.nombre = nombreProducto;
+
+                    // Ingresar y validar el precio del producto
+                    p.precio = ingresarPrecio();
+
+                    // Agregar el producto a la lista
+                    productos.push_back(p);
+
+                    cout << "Producto agregado correctamente." << endl;
+
+                    // Preguntar si desea agregar otro producto
+                    cout << "¿Desea agregar otro producto? (s/n): ";
+                    cin >> continuar;
+
+                } while (continuar == 's' || continuar == 'S');
+                break;
+            }
+
+            case 2:
+                mostrarProductos(productos);
+                break;
+
+            case 3: {
+                float total = calcularTotal(productos);
+                cout << "\nValor total de los productos: $" << fixed << setprecision(2) << total << endl;
+                break;
+            }
+
+            case 4:
+                cout << "Saliendo del programa. ¡Adios!" << endl;
+                break;
+
+            default:
+                cout << "Opcion no valida. Por favor, intente nuevamente." << endl;
+        }
+
+    } while (opcion != 4);
 
     return 0;
 }
+
